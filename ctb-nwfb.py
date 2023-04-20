@@ -26,7 +26,7 @@ def getRouteStop(co):
         return
     else:
         # load routes
-        r = emitRequest('https://rt.data.gov.hk/v1/transport/citybus-nwfb/route/'+co)
+        r = emitRequest('https://rt.data.gov.hk/v1.1/transport/citybus-nwfb/route/'+co)
         routeList = r.json()['data']
 
     _stops = []
@@ -37,7 +37,7 @@ def getRouteStop(co):
    
     # function to load single stop info
     def getStop ( stopId ):
-        r = emitRequest('https://rt.data.gov.hk/v1/transport/citybus-nwfb/stop/'+stopId)
+        r = emitRequest('https://rt.data.gov.hk/v1.1/transport/citybus-nwfb/stop/'+stopId)
         return r.json()['data']
 
     # function to async load multiple stops info
@@ -55,7 +55,7 @@ def getRouteStop(co):
             return route
         route['stops'] = {}
         for direction in ['inbound', 'outbound']:
-            r = emitRequest('https://rt.data.gov.hk/v1/transport/citybus-nwfb/route-stop/'+co.upper()+'/'+route['route']+"/"+direction)
+            r = emitRequest('https://rt.data.gov.hk/v1.1/transport/citybus-nwfb/route-stop/'+co.upper()+'/'+route['route']+"/"+direction)
             route['stops'][direction] = [stop['stop'] for stop in r.json()['data']]
         return route
 
@@ -95,11 +95,9 @@ def getRouteStop(co):
                     'bound': 'O' if bound == 'outbound' else 'I',
                     'orig_en': route['orig_en'] if bound == 'outbound' else route['dest_en'],
                     'orig_tc': route['orig_tc'] if bound == 'outbound' else route['dest_tc'],
-                    'orig_sc': route['orig_sc'] if bound == 'outbound' else route['dest_sc'],
                     'dest_en': route['dest_en'] if bound == 'outbound' else route['orig_en'],
                     'dest_tc': route['dest_tc'] if bound == 'outbound' else route['orig_tc'],
-                    'dest_sc': route['dest_sc'] if bound == 'outbound' else route['orig_sc'],
-                    'stops': route['stops'][bound],
+                    'stops': list(filter(lambda stopId: bool(stopList[stopId]), route['stops'][bound])),
                     'serviceType': 0
                 })
 
